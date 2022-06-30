@@ -7,7 +7,7 @@ import vuetify from './plugins/vuetify'
 Vue.config.productionTip = false
 
 Vue.filter('money', function (value) {
-    let strValue = String(value).split('.');
+    let strValue = value ? String(value).split('.') : ['0', '0'];
     let cents = strValue.length == 2 ? strValue[1] : '0';
     cents = cents.length == 1 ? cents + '0' : cents;
     return `R$ ${strValue[0]},${cents}`;

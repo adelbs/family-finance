@@ -1,19 +1,5 @@
 <template>
     <v-app>
-        <v-app-bar
-            app
-            color="primary"
-            dark
-            dense
-        >
-            <div class="d-flex align-center">
-                Family Finance
-            </div>
-
-            <v-spacer></v-spacer>
-
-        </v-app-bar>
-
         <v-main>
             <router-view />
         </v-main>
@@ -22,11 +8,21 @@
 
 <script>
 
+import axios from 'axios';
+
 export default {
     name: 'App',
 
     data: () => ({
 
     }),
+    mounted() {
+        // axios({
+        //     method: 'get',
+        //     url: 'http://localhost:3000/all'
+        // }).then(res => {
+        //     this.$store.commit('months', res.data);
+        // }).catch(err => console.log(err));
+    }
 };
 </script>
