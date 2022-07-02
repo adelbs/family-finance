@@ -1,6 +1,8 @@
 <template>
     <v-container>
 
+        <Budget v-model="budgetDialog"></Budget>
+        <Forecast v-model="forecastDialog"></Forecast>
         <Repository v-model="repoDialog"></Repository>
         <Expense v-model="expenseDialog"></Expense>
 
@@ -15,6 +17,24 @@
                 </v-btn>
                 {{ month.name }}
                 <v-spacer></v-spacer>
+                <v-btn
+                    small
+                    icon
+                    outlined
+                    class="mx-1"
+                    @click="newBudget()"
+                >
+                    <v-icon small>mdi-cash-plus</v-icon>
+                </v-btn>
+                <v-btn
+                    small
+                    icon
+                    outlined
+                    class="mx-1"
+                    @click="newForecast()"
+                >
+                    <v-icon small>mdi-bank-plus</v-icon>
+                </v-btn>
                 <v-btn
                     small
                     icon
@@ -50,7 +70,7 @@
                             <div>Saldo final: {{ repo.value.end | money }}</div>
                         </div>
                         <div v-else>
-                            <div>Valor fatura: {{ sumRepo(repo.name) | money }}</div>
+                            <div>Valor fatura: {{ repo.value.end | money }}</div>
                             <div>&nbsp;</div>
                         </div>
                     </v-card>
@@ -65,76 +85,64 @@
                 dark
                 v-model="tabs"
             >
-                <v-tab>Planejamento</v-tab>
+                <v-tab>Resumo</v-tab>
                 <v-tab>Extrato</v-tab>
             </v-tabs>
             <v-tabs-items v-model="tabs">
                 <v-tab-item class="pa-3">
-                    <div class="d-flex justify-center">
 
-                        <v-card flat>
-                            <v-card-title>&nbsp;</v-card-title>
-                            <v-card-text>
-                                <div v-for="(item, i) of month.forecasts" :key="i">
-                                    <v-divider v-if="i > 0" class="mt-5 mb-5"></v-divider>
-                                    <v-row dense>
-                                        <v-col class="subtitle-2">{{ item.name }}</v-col>
-                                    </v-row>
-                                    <v-row v-for="(subItem, j) of item.forecast" :key="'sub-'+ j" dense>
-                                        <v-col>{{ subItem.cat }}</v-col>
-                                    </v-row>
-                                </div>
-                            </v-card-text>
-                        </v-card>
-
-                        <v-card
-                            width="140"
-                            outlined
-                            class="mr-1"
+                    <v-card
+                        width="400"
+                        class="ma-2 pa-2"
+                        flat
+                    >
+                        <v-row>
+                            <v-col>&nbsp;</v-col>
+                            <v-col class="title text-right">Previsto</v-col>
+                            <v-col class="title text-right">Realizado</v-col>
+                        </v-row>
+                        <div
+                            v-for="(budget, i) of month.budget"
+                            :key="'bdg-'+ i"
+                            class="mb-4"
                         >
-                            <v-card-title>Previsto</v-card-title>
-                            <v-card-text>
-                                <div v-for="(item, i) of month.forecasts" :key="i">
-                                    <v-divider v-if="i > 0" class="mt-5 mb-5"></v-divider>
-                                    <v-row dense>
-                                        <v-col class="subtitle-2">&nbsp;</v-col>
-                                    </v-row>
-                                    <v-row v-for="(subItem, j) of item.forecast" :key="'sub-'+ j" dense>
-                                        <v-col class="text-right">{{ subItem.value | money }}</v-col>
-                                    </v-row>
-                                </div>
-                            </v-card-text>
-                        </v-card>
+                            <v-card
+                                flat
+                                link
+                                class="subtitle-2 mb-2"
+                                @click="editBudget(budget, i)"
+                            >
+                                {{ budget.name }}
+                            </v-card>
+                            <v-card
+                                flat
+                                link
+                                v-for="(forecast, j) of budget.forecast"
+                                :key="'bdg-'+ i +'-item'+ j"
+                                @click="editForecast(forecast, j, i)"
+                            >
+                                <v-row dense>
+                                    <v-col class="body-2">
+                                        {{ forecast.cat }}
+                                    </v-col>
+                                    <v-col class="body-2 text-right">{{ forecast.value | money }}</v-col>
+                                    <v-col class="body-2 text-right">{{ forecast.accomplished | money }}</v-col>
+                                </v-row>
+                            </v-card>
+                            <v-row dense>
+                                <v-col class="subtitle-2">
+                                    Total
+                                </v-col>
+                                <v-col class="subtitle-2 text-right">{{ budget.total | money }}</v-col>
+                                <v-col class="subtitle-2 text-right">{{ budget.totalAccomplished | money }}</v-col>
+                            </v-row>
 
-                        <v-card
-                            width="140"
-                            outlined
-                        >
-                            <v-card-title>Realizado</v-card-title>
-                            <v-card-text>
-                                <v-row dense>
-                                    <v-col>&nbsp;</v-col>
-                                </v-row>
-                                <v-row dense>
-                                    <v-col class="text-right">R$ 10,00</v-col>
-                                </v-row>
-                                <v-row dense>
-                                    <v-col class="text-right">R$ 10,00</v-col>
-                                </v-row>
-                                <v-divider class="mt-5 mb-5"></v-divider>
-                                <v-row dense>
-                                    <v-col>&nbsp;</v-col>
-                                </v-row>
-                                <v-row dense>
-                                    <v-col class="text-right">R$ 10,00</v-col>
-                                </v-row>
-                                <v-row dense>
-                                    <v-col class="text-right">R$ 10,00</v-col>
-                                </v-row>
+                            <v-divider></v-divider>
 
-                            </v-card-text>
-                        </v-card>
-                    </div>
+                        </div>
+
+                    </v-card>
+
                 </v-tab-item>
                 <v-tab-item class="pa-3">
                     <v-row>
@@ -171,16 +179,20 @@
 
 <script>
 
-import axios from 'axios';
+import { getMonth } from '../common';
 
+import Budget from '../components/Budget.vue';
+import Forecast from '../components/Forecast.vue';
 import Repository from '../components/Repository.vue';
 import Expense from '../components/Expense.vue';
 
 export default {
     name: 'Balance',
-    components: { Repository, Expense },
+    components: { Budget, Forecast, Repository, Expense },
     data: () => ({
         tabs: 0,
+        budgetDialog: false,
+        forecastDialog: false,
         repoDialog: false,
         expenseDialog: false
     }),
@@ -192,15 +204,36 @@ export default {
     },
     mounted() {
         if (this.month.key == '0000-00') {
-            axios({
-                method: 'get',
-                url: `http://localhost:3000/${this.$route.params.key}`
-            }).then(res => {
-                this.$store.commit('pushMonth', res.data);
-            }).catch(err => console.log(err));
+            getMonth(this.$route.params.key).then(data => this.$store.commit('pushMonth', data)).catch(err => console.log(err));
         }
     },
     methods: {
+        newBudget() {
+            this.$store.commit('budgetIndex', -1);
+            this.$store.commit('budgetName', '');
+            this.budgetDialog = true;
+        },
+        editBudget(budget, index) {
+            this.$store.commit('budgetIndex', index);
+            this.$store.commit('budgetName', budget.name);
+            this.budgetDialog = true;
+        },
+        newForecast() {
+            this.$store.commit('forecastIndex', -1);
+            this.$store.commit('forecastIndexBudget', -1);
+            this.$store.commit('forecastCat', '');
+            this.$store.commit('forecastValue', 0);
+            this.$store.commit('forecastNotes', '');
+            this.forecastDialog = true;
+        },
+        editForecast(forecast, indexForecast, indexBudget) {
+            this.$store.commit('forecastIndex', indexForecast);
+            this.$store.commit('forecastIndexBudget', indexBudget);
+            this.$store.commit('forecastCat', forecast.cat);
+            this.$store.commit('forecastValue', forecast.value);
+            this.$store.commit('forecastNotes', forecast.notes);
+            this.forecastDialog = true;
+        },
         newRepo() {
             this.$store.commit('repoIndex', -1);
             this.$store.commit('repoName', '');
@@ -216,12 +249,6 @@ export default {
             this.$store.commit('repoEnd', repo.value.end);
             this.$store.commit('repoIsCredit', repo.isCredit);
             this.repoDialog = true;
-        },
-        sumRepo(name) {
-            return this.month.balance.reduce((pre, curr, i, arr) => {
-                const value = curr.positive ? curr.value * -1 : curr.value;
-                return curr.repo === name ? pre + value : pre;
-            }, 0);
         },
         newExpense() {
             this.$store.commit('expenseIndex', -1);

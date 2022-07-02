@@ -19,10 +19,11 @@
                     v-model="dt"
                     label="Data"
                 ></v-text-field>
-                <v-text-field
+                <v-select
+                    :items="catList"
                     v-model="cat"
                     label="Categoria"
-                ></v-text-field>
+                ></v-select>
                 <v-text-field
                     v-model="desc"
                     label="Descrição"
@@ -48,13 +49,13 @@
                     outlined
                     small
                     color="error"
-                    @click="remove()"
+                    @click="save(true)"
                 >Excluir</v-btn>
                 <v-btn
                     outlined
                     small
                     color="primary"
-                    @click="save()"
+                    @click="save(false)"
                 >Salvar</v-btn>
             </v-card-actions>
         </v-card>
@@ -63,7 +64,7 @@
 
 <script>
 
-import axios from 'axios';
+import { setMonth, updateSums } from '../common';
 
 export default {
     name: 'Expense',
@@ -80,7 +81,17 @@ export default {
         },
         repoList() {
             const month = this.$store.getters.months.filter(v => v.key === this.$route.params.key)[0];
-            return month.repos;
+            return month ? month.repos : [];
+        },
+        catList() {
+            const month = this.$store.getters.months.filter(v => v.key === this.$route.params.key)[0];
+            const list = [];
+            if (month) {
+                for (let i = 0; i < month.budget.length; i++) {
+                    list.push(...month.budget[i].forecast);
+                }
+            }
+            return list.map(item => item.cat);
         },
         repo: {
             get() {
@@ -132,46 +143,34 @@ export default {
         }
     },
     methods: {
-        save() {
+        save(isDelete) {
             const month = this.$store.getters.months.filter(v => v.key === this.$route.params.key)[0];
             const index = this.$store.getters.selectedExpense.index;
 
-            if (index === -1) {
-                month.balance.push({ repo: this.repo, dt: this.dt, cat: this.cat, desc: this.desc, value: this.expenseValue, positive: this.positive });
+            if (isDelete) {
+                month.balance.splice(index, 1);
             }
             else {
-                month.balance[index].repo = this.repo;
-                month.balance[index].dt = this.dt;
-                month.balance[index].cat = this.cat;
-                month.balance[index].desc = this.desc;
-                month.balance[index].value = parseFloat(this.expenseValue);
-                month.balance[index].positive = this.positive;
+                if (index === -1) {
+                    month.balance.push({ repo: this.repo, dt: this.dt, cat: this.cat, desc: this.desc, value: parseFloat(this.expenseValue), positive: this.positive });
+                }
+                else {
+                    month.balance[index].repo = this.repo;
+                    month.balance[index].dt = this.dt;
+                    month.balance[index].cat = this.cat;
+                    month.balance[index].desc = this.desc;
+                    month.balance[index].value = parseFloat(this.expenseValue);
+                    month.balance[index].positive = this.positive;
+                }
             }
 
-            axios({
-                method: 'post',
-                url: `http://localhost:3000/${this.$route.params.key}`,
-                data: month
-            }).then(res => {
-                this.$store.commit('updateMonth', res.data);
+            updateSums(month);
+
+            setMonth(this.$route.params.key, month).then(data => {
+                this.$store.commit('updateMonth', data);
                 this.show = false;
             }).catch(err => console.log(err));
         },
-        remove() {
-            const month = this.$store.getters.months.filter(v => v.key === this.$route.params.key)[0];
-            const index = this.$store.getters.selectedExpense.index;
-
-            month.balance.splice(index, 1);
-
-            axios({
-                method: 'post',
-                url: `http://localhost:3000/${this.$route.params.key}`,
-                data: month
-            }).then(res => {
-                this.$store.commit('updateMonth', res.data);
-                this.show = false;
-            }).catch(err => console.log(err));
-        }
     }
 }
 

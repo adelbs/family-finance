@@ -5,6 +5,17 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
     state: {
+        selectedBudget: {
+            index: -1,
+            name: ''
+        },
+        selectedForecast: {
+            indexBudget: -1,
+            index: -1,
+            cat: '',
+            value: 0,
+            notes: ''
+        },
         selectedRepo: {
             index: -1,
             name: '',
@@ -27,13 +38,19 @@ export default new Vuex.Store({
         emptyMonth: {
             key: '0000-00',
             name: 'Not Found',
-            forecasts: [],
+            budget: [],
             repos: [],
             balance: []
         },
         months: []
     },
     getters: {
+        selectedBudget(state) {
+            return state.selectedBudget;
+        },
+        selectedForecast(state) {
+            return state.selectedForecast;
+        },
         selectedRepo(state) {
             return state.selectedRepo;
         },
@@ -48,7 +65,33 @@ export default new Vuex.Store({
         }
     },
     mutations: {
+
+        //Forecast
+        forecastIndex(state, value) {
+            state.selectedForecast.index = value;
+        },
+        forecastIndexBudget(state, value) {
+            state.selectedForecast.indexBudget = value;
+        },
+        forecastCat(state, value) {
+            state.selectedForecast.cat = value;
+        },
+        forecastValue(state, value) {
+            state.selectedForecast.value = value;
+        },
+        forecastNotes(state, value) {
+            state.selectedForecast.notes = value;
+        },
         
+        //Budget
+        budgetIndex(state, value) {
+            state.selectedBudget.index = value;
+        },
+        budgetName(state, value) {
+            state.selectedBudget.name = value;
+        },
+
+        // Repo
         repoIndex(state, value) {
             state.selectedRepo.index = value;
         },
@@ -87,6 +130,7 @@ export default new Vuex.Store({
             }
         },
 
+        //Expense
         expenseIndex(state, value) {
             state.selectedExpense.index = value;
         },

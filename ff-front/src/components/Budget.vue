@@ -5,23 +5,14 @@
     >
         <v-card>
             <v-card-title>
-                Repositório
+                Orçamento
             </v-card-title>
             <v-card-text>
                 <v-text-field
                     v-model="name"
                     label="Nome"
-                    :disabled="$store.getters.selectedRepo.index !== -1"
+                    :disabled="$store.getters.selectedBudget.index !== -1"
                 ></v-text-field>
-                <v-text-field
-                    v-model="init"
-                    label="Valor Inicial"
-                    :disabled="isCredit"
-                ></v-text-field>
-                <v-checkbox
-                    v-model="isCredit"
-                    label="Cartão de Crédito"
-                ></v-checkbox>
             </v-card-text>
             <v-card-actions>
                 <v-spacer></v-spacer>
@@ -31,7 +22,7 @@
                     @click="show = false"
                 >Fechar</v-btn>
                 <v-btn
-                    v-if="$store.getters.selectedRepo.index !== -1"
+                    v-if="$store.getters.selectedBudget.index !== -1"
                     outlined
                     small
                     color="error"
@@ -53,7 +44,7 @@
 import { setMonth, updateSums } from '../common';
 
 export default {
-    name: 'Repository',
+    name: 'Budget',
     props: ['value'],
     data: () => ({}),
     computed: {
@@ -68,44 +59,27 @@ export default {
         },
         name: {
             get() {
-                return this.$store.getters.selectedRepo.name;
+                return this.$store.getters.selectedBudget.name;
             },
             set(value) {
-                this.$store.commit('repoName', value);
+                this.$store.commit('budgetName', value);
             }
         },
-        init: {
-            get() {
-                return this.$store.getters.selectedRepo.value.init;
-            },
-            set(value) {
-                this.$store.commit('repoInit', value);
-            }
-        },
-        isCredit: {
-            get() {
-                return this.$store.getters.selectedRepo.isCredit;
-            },
-            set(value) {
-                this.$store.commit('repoIsCredit', value);
-            }
-        }
     },
     methods: {
         save(isDelete) {
             const month = this.$store.getters.months.filter(v => v.key === this.$route.params.key)[0];
-            const index = this.$store.getters.selectedRepo.index;
+            const index = this.$store.getters.selectedBudget.index;
 
             if (isDelete) {
-                month.repos.splice(index, 1);
+                month.budget.splice(index, 1);
             }
             else {
                 if (index === -1) {
-                    month.repos.push({ name: this.name, value: { init: parseFloat(this.init), end: null }, isCredit: this.isCredit });
+                    month.budget.push({ name: this.name, forecast: [], total: 0, totalAccomplished: 0 });
                 }
                 else {
-                    month.repos[index].value.init = parseFloat(this.init);
-                    month.repos[index].isCredit = this.isCredit;
+                    // there is nothing to update
                 }
             }
 
